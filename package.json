@@ -1,0 +1,10 @@
+{
+  "name": "crypto-market",
+  "scripts": {
+    "start": "vite"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "vite": "^2.9.1"
+  }
+}
