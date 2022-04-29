@@ -55,18 +55,18 @@ h1 {
       color: red;
     }
 
-    .green__price__tag {
+    .price__tag {
       margin-left: 6px;
       padding: 6px;
       border-radius: 4px;
+    }
+
+    .green__price__tag {
       color: green;
       background-color: #b4f8c8;
     }
 
     .red__price__tag {
-      margin-left: 6px;
-      padding: 6px;
-      border-radius: 4px;
       color: red;
       background-color: #ffaebc;
     }

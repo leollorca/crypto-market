@@ -2,7 +2,7 @@ import "../styles/index.scss";
 
 fetchData();
 
-setInterval(fetchData, 5000);
+setInterval(fetchData, 60000);
 
 const state = {
   currentCryptos: [],
@@ -41,6 +41,7 @@ function createCrypto(currentCrypto, previousCrypto) {
   const formatedPrice = new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(
     currentCrypto.current_price
   );
+
   cryptoTag.innerHTML = `
         <span class="rank">${currentCrypto.market_cap_rank}</span>
         <img src="${currentCrypto.image}">
@@ -49,27 +50,37 @@ function createCrypto(currentCrypto, previousCrypto) {
          `;
   const price = document.createElement("div");
   price.classList.add("price");
-  const priceTag = document.createElement("span");
   const arrow = document.createElement("span");
+  const priceTag = document.createElement("span");
+  priceTag.classList.add("price__tag");
   priceTag.innerHTML = formatedPrice;
   price.appendChild(arrow);
   price.appendChild(priceTag);
   cryptoTag.appendChild(price);
+
+  if (!previousCrypto) {
+    return cryptoTag;
+  }
+
   const currentPrice = currentCrypto.current_price;
   const previousPrice = previousCrypto.current_price;
+
   if (currentPrice > previousPrice) {
-    console.log(`Le prix du ${currentCrypto.name} à augmenté, il est passé de ${previousPrice} à ${currentPrice} !`);
     arrow.innerHTML = "↑";
     arrow.classList.add("green__arrow");
     priceTag.classList.add("green__price__tag");
-    return cryptoTag;
-  } else if (currentPrice < previousPrice) {
-    console.log(`Le prix du ${currentCrypto.name} à baissé, il est passé de ${previousPrice} à ${currentPrice} !`);
+  }
+
+  if (currentPrice < previousPrice) {
     arrow.innerHTML = "↓";
     arrow.classList.add("red__arrow");
     priceTag.classList.add("red__price__tag");
-    return cryptoTag;
-  } else {
-    return cryptoTag;
   }
+
+  const removeComparisonIndicator = setTimeout(function () {
+    arrow.innerHTML = "";
+    priceTag.classList.remove("green__price__tag", "red__price__tag");
+  }, 5000);
+
+  return cryptoTag;
 }
