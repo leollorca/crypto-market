@@ -7,6 +7,7 @@ setInterval(fetchData, 60000);
 const state = {
   currentCryptos: [],
   previousCryptos: [],
+  favCryptos: [],
 };
 
 function fetchData() {
@@ -36,6 +37,18 @@ function renderCryptoList() {
   });
 }
 
+function renderFavCryptoList() {
+  const app = document.querySelector("#app");
+  const favCryptoList = document.createElement("ul");
+  app.innerHTML = null;
+  favCryptoList.classList.add("crypto__list");
+  app.prepend(favCryptoList);
+  state.favCryptos.forEach(function (currentCrypto) {
+    const previousCrypto = state.previousCryptos.find((previousCrypto) => previousCrypto.id === currentCrypto.id);
+    favCryptoList.appendChild(createCrypto(currentCrypto, previousCrypto));
+  });
+}
+
 function createCrypto(currentCrypto, previousCrypto) {
   const cryptoTag = document.createElement("li");
   const formatedPrice = new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(
@@ -43,11 +56,28 @@ function createCrypto(currentCrypto, previousCrypto) {
   );
 
   cryptoTag.innerHTML = `
-        <span class="rank">${currentCrypto.market_cap_rank}</span>
         <img src="${currentCrypto.image}">
         <h2>${currentCrypto.name}</h2>
         <span class="symbol">${currentCrypto.symbol.toUpperCase()}</span>
          `;
+
+  const favCheckBox = document.createElement("input");
+  favCheckBox.setAttribute("type", "checkbox");
+  favCheckBox.classList.add("fav__checkbox");
+  cryptoTag.prepend(favCheckBox);
+  currentCrypto.checkBox = favCheckBox;
+  favCheckBox.addEventListener("change", (e) => {
+    if (currentCrypto.checkBox.checked) {
+      state.favCryptos.push(currentCrypto);
+      state.currentCryptos.shift();
+      renderFavCryptoList();
+      renderCryptoList();
+      console.log(state.favCryptos);
+      console.log((state.favCryptos[0]));
+    } else {
+    }
+  });
+
   const price = document.createElement("div");
   price.classList.add("price");
   const arrow = document.createElement("span");
