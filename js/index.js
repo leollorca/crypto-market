@@ -4,6 +4,8 @@ fetchData();
 
 setInterval(fetchData, 60000);
 
+const app = document.querySelector("#app");
+
 const state = {
   currentCryptos: [],
   previousCryptos: [],
@@ -18,17 +20,31 @@ function fetchData() {
         .then(function (data) {
           state.previousCryptos = state.currentCryptos;
           state.currentCryptos = data;
-          renderCryptoList();
+          renderApp();
         })
         .catch(function (error) {});
     })
     .catch(function (error) {});
 }
 
-function renderCryptoList() {
-  const app = document.querySelector("#app");
-  const cryptoList = document.createElement("ul");
+function renderApp() {
   app.innerHTML = null;
+  renderFavCryptoList();
+  renderCryptoList();
+}
+
+function renderFavCryptoList() {
+  const favCryptoList = document.createElement("ul");
+  favCryptoList.classList.add("fav__crypto__list");
+  app.appendChild(favCryptoList);
+  state.favCryptos.forEach(function (currentCrypto) {
+    const previousCrypto = state.previousCryptos.find((previousCrypto) => previousCrypto.id === currentCrypto.id);
+    favCryptoList.appendChild(createCrypto(currentCrypto, previousCrypto));
+  });
+}
+
+function renderCryptoList() {
+  const cryptoList = document.createElement("ul");
   cryptoList.classList.add("crypto__list");
   app.appendChild(cryptoList);
   state.currentCryptos.forEach(function (currentCrypto) {
@@ -37,23 +53,8 @@ function renderCryptoList() {
   });
 }
 
-function renderFavCryptoList() {
-  const app = document.querySelector("#app");
-  const favCryptoList = document.createElement("ul");
-  app.innerHTML = null;
-  favCryptoList.classList.add("crypto__list");
-  app.prepend(favCryptoList);
-  state.favCryptos.forEach(function (currentCrypto) {
-    const previousCrypto = state.previousCryptos.find((previousCrypto) => previousCrypto.id === currentCrypto.id);
-    favCryptoList.appendChild(createCrypto(currentCrypto, previousCrypto));
-  });
-}
-
 function createCrypto(currentCrypto, previousCrypto) {
   const cryptoTag = document.createElement("li");
-  const formatedPrice = new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(
-    currentCrypto.current_price
-  );
 
   cryptoTag.innerHTML = `
         <img src="${currentCrypto.image}">
@@ -65,19 +66,17 @@ function createCrypto(currentCrypto, previousCrypto) {
   favCheckBox.setAttribute("type", "checkbox");
   favCheckBox.classList.add("fav__checkbox");
   cryptoTag.prepend(favCheckBox);
-  currentCrypto.checkBox = favCheckBox;
-  favCheckBox.addEventListener("change", (e) => {
-    if (currentCrypto.checkBox.checked) {
-      state.favCryptos.push(currentCrypto);
-      state.currentCryptos.shift();
-      renderFavCryptoList();
-      renderCryptoList();
-      console.log(state.favCryptos);
-      console.log((state.favCryptos[0]));
-    } else {
-    }
+  favCheckBox.addEventListener("change", function (e) {
+    onCheckboxChange(e, currentCrypto);
   });
+  const isFavCrypto = state.favCryptos.some((currentFavCrypto) => currentFavCrypto.id === currentCrypto.id);
+  if (isFavCrypto) {
+    favCheckBox.checked = true;
+  }
 
+  const formatedPrice = new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(
+    currentCrypto.current_price
+  );
   const price = document.createElement("div");
   price.classList.add("price");
   const arrow = document.createElement("span");
@@ -87,20 +86,16 @@ function createCrypto(currentCrypto, previousCrypto) {
   price.appendChild(arrow);
   price.appendChild(priceTag);
   cryptoTag.appendChild(price);
-
   if (!previousCrypto) {
     return cryptoTag;
   }
-
   const currentPrice = currentCrypto.current_price;
   const previousPrice = previousCrypto.current_price;
-
   if (currentPrice > previousPrice) {
     arrow.innerHTML = "↑";
     arrow.classList.add("green__arrow");
     priceTag.classList.add("green__price__tag");
   }
-
   if (currentPrice < previousPrice) {
     arrow.innerHTML = "↓";
     arrow.classList.add("red__arrow");
@@ -113,4 +108,17 @@ function createCrypto(currentCrypto, previousCrypto) {
   }, 5000);
 
   return cryptoTag;
+}
+
+function onCheckboxChange(e, currentCrypto) {
+  if (e.target.checked) {
+    const currentCryptoIndex = state.currentCryptos.findIndex((crypto) => crypto.id === currentCrypto.id);
+    state.currentCryptos.splice(currentCryptoIndex, 1);
+    state.favCryptos.push(currentCrypto);
+  } else {
+    const favCryptoIndex = state.favCryptos.findIndex((crypto) => crypto.id === currentCrypto.id);
+    state.favCryptos.splice(favCryptoIndex, 1);
+    state.currentCryptos.push(currentCrypto);
+  }
+  renderApp();
 }
