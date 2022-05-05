@@ -4,9 +4,12 @@ fetchData();
 
 setInterval(fetchData, 60000);
 
+const app = document.querySelector("#app");
+
 const state = {
   currentCryptos: [],
   previousCryptos: [],
+  favCryptoIds: [],
 };
 
 function fetchData() {
@@ -17,20 +20,37 @@ function fetchData() {
         .then(function (data) {
           state.previousCryptos = state.currentCryptos;
           state.currentCryptos = data;
-          renderCryptoList();
+          renderApp();
         })
         .catch(function (error) {});
     })
     .catch(function (error) {});
 }
 
-function renderCryptoList() {
-  const app = document.querySelector("#app");
-  const cryptoList = document.createElement("ul");
+function renderApp() {
   app.innerHTML = null;
+  renderFavCryptoList();
+  renderCryptoList();
+}
+
+function renderFavCryptoList() {
+  const favCryptoList = document.createElement("ul");
+  favCryptoList.classList.add("fav__crypto__list");
+  app.appendChild(favCryptoList);
+  state.favCryptoIds.forEach(function (cryptoId) {
+    const currentCrypto = state.currentCryptos.find((currentCrypto) => currentCrypto.id === cryptoId);
+    const previousCrypto = state.previousCryptos.find((previousCrypto) => previousCrypto.id === cryptoId);
+    favCryptoList.appendChild(createCrypto(currentCrypto, previousCrypto));
+  });
+}
+
+function renderCryptoList() {
+  const cryptoList = document.createElement("ul");
   cryptoList.classList.add("crypto__list");
   app.appendChild(cryptoList);
   state.currentCryptos.forEach(function (currentCrypto) {
+    const isFavCrypto = state.favCryptoIds.some((cryptoId) => cryptoId === currentCrypto.id);
+    if (isFavCrypto) return;
     const previousCrypto = state.previousCryptos.find((previousCrypto) => previousCrypto.id === currentCrypto.id);
     cryptoList.appendChild(createCrypto(currentCrypto, previousCrypto));
   });
@@ -38,16 +58,28 @@ function renderCryptoList() {
 
 function createCrypto(currentCrypto, previousCrypto) {
   const cryptoTag = document.createElement("li");
-  const formatedPrice = new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(
-    currentCrypto.current_price
-  );
 
   cryptoTag.innerHTML = `
-        <span class="rank">${currentCrypto.market_cap_rank}</span>
         <img src="${currentCrypto.image}">
         <h2>${currentCrypto.name}</h2>
         <span class="symbol">${currentCrypto.symbol.toUpperCase()}</span>
          `;
+
+  const favCheckBox = document.createElement("input");
+  favCheckBox.setAttribute("type", "checkbox");
+  favCheckBox.classList.add("fav__checkbox");
+  cryptoTag.prepend(favCheckBox);
+  favCheckBox.addEventListener("change", function (e) {
+    onCheckboxChange(e, currentCrypto);
+  });
+  const isFavCrypto = state.favCryptoIds.some((cryptoId) => cryptoId === currentCrypto.id);
+  if (isFavCrypto) {
+    favCheckBox.checked = true;
+  }
+
+  const formatedPrice = new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(
+    currentCrypto.current_price
+  );
   const price = document.createElement("div");
   price.classList.add("price");
   const arrow = document.createElement("span");
@@ -57,20 +89,16 @@ function createCrypto(currentCrypto, previousCrypto) {
   price.appendChild(arrow);
   price.appendChild(priceTag);
   cryptoTag.appendChild(price);
-
   if (!previousCrypto) {
     return cryptoTag;
   }
-
   const currentPrice = currentCrypto.current_price;
   const previousPrice = previousCrypto.current_price;
-
   if (currentPrice > previousPrice) {
     arrow.innerHTML = "↑";
     arrow.classList.add("green__arrow");
     priceTag.classList.add("green__price__tag");
   }
-
   if (currentPrice < previousPrice) {
     arrow.innerHTML = "↓";
     arrow.classList.add("red__arrow");
@@ -83,4 +111,15 @@ function createCrypto(currentCrypto, previousCrypto) {
   }, 5000);
 
   return cryptoTag;
+}
+
+function onCheckboxChange(e, currentCrypto) {
+  if (e.target.checked) {
+    state.favCryptoIds.push(currentCrypto.id);
+  } else {
+    const favCryptoIdIndex = state.favCryptoIds.findIndex((cryptoId) => cryptoId === currentCrypto.id);
+    state.favCryptoIds.splice(favCryptoIdIndex, 1);
+  }
+  console.log(state.favCryptoIds);
+  renderApp();
 }
