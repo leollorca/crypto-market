@@ -9,7 +9,7 @@ const app = document.querySelector("#app");
 const state = {
   currentCryptos: [],
   previousCryptos: [],
-  favCryptos: [],
+  favCryptoIds: [],
 };
 
 function fetchData() {
@@ -37,8 +37,9 @@ function renderFavCryptoList() {
   const favCryptoList = document.createElement("ul");
   favCryptoList.classList.add("fav__crypto__list");
   app.appendChild(favCryptoList);
-  state.favCryptos.forEach(function (currentCrypto) {
-    const previousCrypto = state.previousCryptos.find((previousCrypto) => previousCrypto.id === currentCrypto.id);
+  state.favCryptoIds.forEach(function (cryptoId) {
+    const currentCrypto = state.currentCryptos.find((currentCrypto) => currentCrypto.id === cryptoId);
+    const previousCrypto = state.previousCryptos.find((previousCrypto) => previousCrypto.id === cryptoId);
     favCryptoList.appendChild(createCrypto(currentCrypto, previousCrypto));
   });
 }
@@ -48,6 +49,8 @@ function renderCryptoList() {
   cryptoList.classList.add("crypto__list");
   app.appendChild(cryptoList);
   state.currentCryptos.forEach(function (currentCrypto) {
+    const isFavCrypto = state.favCryptoIds.some((cryptoId) => cryptoId === currentCrypto.id);
+    if (isFavCrypto) return;
     const previousCrypto = state.previousCryptos.find((previousCrypto) => previousCrypto.id === currentCrypto.id);
     cryptoList.appendChild(createCrypto(currentCrypto, previousCrypto));
   });
@@ -69,7 +72,7 @@ function createCrypto(currentCrypto, previousCrypto) {
   favCheckBox.addEventListener("change", function (e) {
     onCheckboxChange(e, currentCrypto);
   });
-  const isFavCrypto = state.favCryptos.some((currentFavCrypto) => currentFavCrypto.id === currentCrypto.id);
+  const isFavCrypto = state.favCryptoIds.some((cryptoId) => cryptoId === currentCrypto.id);
   if (isFavCrypto) {
     favCheckBox.checked = true;
   }
@@ -112,13 +115,11 @@ function createCrypto(currentCrypto, previousCrypto) {
 
 function onCheckboxChange(e, currentCrypto) {
   if (e.target.checked) {
-    const currentCryptoIndex = state.currentCryptos.findIndex((crypto) => crypto.id === currentCrypto.id);
-    state.currentCryptos.splice(currentCryptoIndex, 1);
-    state.favCryptos.push(currentCrypto);
+    state.favCryptoIds.push(currentCrypto.id);
   } else {
-    const favCryptoIndex = state.favCryptos.findIndex((crypto) => crypto.id === currentCrypto.id);
-    state.favCryptos.splice(favCryptoIndex, 1);
-    state.currentCryptos.push(currentCrypto);
+    const favCryptoIdIndex = state.favCryptoIds.findIndex((cryptoId) => cryptoId === currentCrypto.id);
+    state.favCryptoIds.splice(favCryptoIdIndex, 1);
   }
+  console.log(state.favCryptoIds);
   renderApp();
 }
