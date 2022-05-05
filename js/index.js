@@ -9,7 +9,7 @@ const app = document.querySelector("#app");
 const state = {
   currentCryptos: [],
   previousCryptos: [],
-  favCryptoIds: [],
+  favCryptoIds: JSON.parse(window.localStorage.getItem("favCryptoIds")) || [],
 };
 
 function fetchData() {
@@ -116,10 +116,15 @@ function createCrypto(currentCrypto, previousCrypto) {
 function onCheckboxChange(e, currentCrypto) {
   if (e.target.checked) {
     state.favCryptoIds.push(currentCrypto.id);
+    syncLocalStorage();
   } else {
     const favCryptoIdIndex = state.favCryptoIds.findIndex((cryptoId) => cryptoId === currentCrypto.id);
     state.favCryptoIds.splice(favCryptoIdIndex, 1);
+    syncLocalStorage();
   }
-  console.log(state.favCryptoIds);
   renderApp();
+}
+
+function syncLocalStorage() {
+  window.localStorage.setItem("favCryptoIds", JSON.stringify(state.favCryptoIds));
 }
