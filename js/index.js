@@ -14,8 +14,8 @@ const state = {
 
 function fetchData() {
   fetch("https://api.coingecko.com/api/v3/coins/markets?vs_currency=eur")
-    .then(function (res) {
-      res
+    .then(function (response) {
+      response
         .json()
         .then(function (data) {
           state.previousCryptos = state.currentCryptos;
@@ -69,8 +69,8 @@ function createCrypto(currentCrypto, previousCrypto) {
   favCheckBox.setAttribute("type", "checkbox");
   favCheckBox.classList.add("fav__checkbox");
   cryptoTag.prepend(favCheckBox);
-  favCheckBox.addEventListener("change", function (e) {
-    onCheckboxChange(e, currentCrypto);
+  favCheckBox.addEventListener("change", function (event) {
+    onCheckboxChange(event, currentCrypto);
   });
   const isFavCrypto = state.favCryptoIds.some((cryptoId) => cryptoId === currentCrypto.id);
   if (isFavCrypto) {
@@ -105,7 +105,7 @@ function createCrypto(currentCrypto, previousCrypto) {
     priceTag.classList.add("red__price__tag");
   }
 
-  const removeComparisonIndicator = setTimeout(function () {
+  setTimeout(function () {
     arrow.innerHTML = "";
     priceTag.classList.remove("green__price__tag", "red__price__tag");
   }, 5000);
@@ -113,8 +113,8 @@ function createCrypto(currentCrypto, previousCrypto) {
   return cryptoTag;
 }
 
-function onCheckboxChange(e, currentCrypto) {
-  if (e.target.checked) {
+function onCheckboxChange(event, currentCrypto) {
+  if (event.target.checked) {
     state.favCryptoIds.push(currentCrypto.id);
     syncLocalStorage();
   } else {
